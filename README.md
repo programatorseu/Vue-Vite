@@ -21,3 +21,11 @@ router/index.js
       component: ContactView,
     }
 ```
+
+## 2. Things
+-> alias inside vite.config.js
+```js
+ alias: {
+      "@": fileURLToPath(new URL("./src", import.meta.url)),
+    },
+```
