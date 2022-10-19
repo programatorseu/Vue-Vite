@@ -1,25 +1,16 @@
-<script setup>
-import TheWelcome from "@/components/TheWelcome.vue";
-import { ref } from "vue";
-let message = ref("Hello World");
-
-let popup = () => {
-  alert('popup message');
+<script>
+import {useFlash} from "@/composables/useFlash";
+export default {
+  setup() {
+    let {flash} = useFlash();
+    return {flash};
+  }
 }
-
-setTimeout(() => {
-  message.value = "I have been Changed";
-}, 2000);
-
 </script>
-
 <template>
   <main>
     <TheWelcome />
-    <p>{{message}}</p>
-    <button @click="popup">click me</button>
-    <p>
-      <input type="text" v-model="message" />
-    </p>
+
+    <button @click="flash('Yo !! ','Ania', 'info')">click me</button>
   </main>
 </template>
