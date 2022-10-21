@@ -1,16 +1,15 @@
-<script>
-import {useFlash} from "@/composables/useFlash";
-export default {
-  setup() {
-    let {flash} = useFlash();
-    return {flash};
-  }
-}
+<!-- eslint-disable prettier/prettier -->
+<script setup>
+import {useStorage} from "@/composables/useStorage";
+let food = useStorage("food", 'pizza');
+let age = useStorage('age');
+let obj = useStorage('obj', {one: '1'});
 </script>
 <template>
   <main>
-    <TheWelcome />
-
-    <button @click="flash('Yo !! ','Ania', 'info')">click me</button>
+    <p>What is your favorite food? <input type="text" v-model="food"></p>
+    <p>How old are you ? 
+      <input type="text" v-model="age"/>
+    </p>
   </main>
 </template>
