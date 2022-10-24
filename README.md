@@ -458,3 +458,294 @@ then to use
    @keyup="emit('update:modelValue', $event.target.value)"
 ```
 
+# State management
+
+we have Quiz component 
+
+-> we are passing quiz object  to Component view:
+
+```js
+import Quiz from "@/components/Quiz.Quiz.vue"
+..
+<Quiz :quizz="{name: "First question", questions: [] }"/>
+```
+
+Quiz component:
+
+```js
+<template>
+    <QuizHeader />
+    <QuizQuestion />
+    <QuizFooter :quiz="quiz" />
+</template>
+<script setup>
+       import QuizHeader from "@/components/Quiz/QuizHeader.vue"
+		...
+        
+    defineProps({quiz: Object});    
+</script>        
+```
+
+
+
+what in case when we need to pass property really level deeper ? 
+
+Top Level Quiz
+
+ - pass quiz object to QuizFooter
+
+   ```js
+   <template>
+       <div>
+       <h5>{{quiz.name}}</h5>
+   	...
+       <script setup>
+           defineProps({quiz: Object});
+       </script>    
+   </template>    
+   ```
+
+   
+
+   - pass to QuizFooterLinks
+
+   ```js
+   <template>
+       <div>
+       <h5>{{quiz.name}}</h5>
+   	...
+       <script setup>
+           defineProps({quiz: Object});
+       </script>    
+   </template>    
+   ```
+
+- import provide from Vue
+
+in top level call
+
+`provide('key', 'value')`
+
+in bottom 
+
+- import inject
+
+  `let key = inject('key')`
+
+we can only inject for components that only needed
+
+
+
+**-> reactive** 
+
+top level: 
+
+```js
+let name = ref('Piotrek');
+provide('name', name);
+```
+
+really usefull is passing mutator 
+
+top-level:
+
+```js
+provide('name', {
+	name,
+    changeName: () => name.value = "Changed"
+});
+```
+
+
+
+
+
+```js
+let{name, changeName} = inject('name');
+<button @click="changeName"> {{name}}</button>
+```
+
+## 2. Store State in an External File
+
+stores/quizStore.js
+
+```js
+export let state = {
+    name: "First Quiz",
+    questions: []
+}
+```
+
+HomeView:
+
+```js
+import {state} from "@/stores/quizStore"
+...
+<Quiz :quiz="state" />
+```
+
+in 3rd level deep file :
+
+```js
+<script setup>
+    import {state} from "@/stores/quizStore"
+</script>    
+```
+
+
+
+change state: 
+
+```js
+div
+	h5{{state.name}}
+	<button @click="state.name = 'A new Quiz name'">Change Quiz Name </button>
+```
+
+to make reactive : inside quizStore:
+
+```js
+import { reactive } from "vue";
+
+export let state = reactive({
+  name: 'My Second Quiz',
+  questions: []
+});
+```
+
+
+
+## 3. Direct Mutation Concerns 
+
+access counter from other part of application
+
+-> create dedicated store : 
+
+```js
+import { reactive } from "vue";
+
+export let counter = reactive({
+	count: 0
+});
+```
+
+then to mutate our counter : 
+
+```js
+<script setup>
+    import {counter} from "@/stores/counter/counterStore";
+</script>
+<template>
+    <div>
+    	<h1>{{counter.count}}</h1>
+	<button @click="counter.count++">Increment</button>
+```
+
+switch to method -> exclusive responsible for incrementing counter : 
+
+```js
+import { reactive } from "vue";
+
+export let counter = reactive({
+  // state
+  count: 0,
+
+  // action
+  increment() {
+    if (this.count >= 10) {
+      return;
+    }
+
+    this.count++;
+  }
+});
+```
+
+Vue component file
+
+```js
+<script setup>
+import {counter} from "@/stores/counterStore";
+</script>
+
+<template>
+  <div>
+    <h1>{{ counter.count }}</h1>
+
+    <button @click="counter.increment()">Increment</button>
+  </div>
+</template>
+```
+
+#### 4. Pinia 
+
+tool for dealing with global state mamangement 
+
+we have counterStore and convert to pinia
+
+```bash
+npm install pinia 
+```
+
+main.js  -> import pinia  and regsiter as plugin 
+
+```js
+import { createApp } from "vue";
+import App from "./App.vue";
+import router from "./router";
+import {createPinia} from "pinia";
+
+app.use(createPinia());
+```
+
+1. define new store from pinia 
+2. call and pass name , next object where we declare state and actions
+
+```js
+import { defineStore } from "pinia";
+
+export let useCounterStore = defineStore('counter', {
+  // data
+  state() {
+    return {
+      count: 5
+    };
+  },
+
+  // methods
+  actions: {
+    increment() {
+      if (this.count < 10) {
+        this.count++;
+      }
+    }
+  },
+  // computed
+  getters: {
+    remaining() {
+      return 10 - this.count;
+    }
+  }
+});
+```
+
+```js
+<script setup>
+import {useCounterStore} from "@/stores/CounterStore";
+let counter = useCounterStore();
+</script>
+
+<template>
+  <div>
+    <h1>{{ counter.count }}</h1>
+
+    <button
+      @click="counter.increment()"
+      :disabled="! counter.remaining"
+    >Increment ({{ counter.remaining }} Remaining)</button>
+  </div>
+</template>
+```
+
+
+
